@@ -1,0 +1,31 @@
+name: Bug report
+description: Report incorrect behavior in the game or simulation.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Include the screen, action, and game date.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+  - type: textarea
+    id: save
+    attributes:
+      label: Relevant save or screenshots
+      description: Remove any information you do not want to share publicly.

@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17201c">
+  <meta name="description" content="Capital Frontier is a twenty-year American markets and business simulation.">
+  <title>Capital Frontier</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="brand" type="button" data-tab-target="overview" aria-label="Capital Frontier overview">
+        <span class="brand-mark" aria-hidden="true">CF</span>
+        <span><strong>Capital Frontier</strong><small>American enterprise, 2026–2046</small></span>
+      </button>
+      <div class="clock" aria-live="polite">
+        <span id="date-label">Jul 2026</span>
+        <div class="era-track" aria-hidden="true"><span id="era-progress"></span></div>
+        <small id="years-left">20 years remain</small>
+      </div>
+      <div class="top-actions">
+        <div class="header-cash" title="Cash immediately available for purchases and payments">
+          <small>Available cash</small>
+          <strong id="header-cash">$85.0K</strong>
+        </div>
+        <button class="sound-button" id="sound-toggle" type="button" title="Toggle music and sound effects" aria-label="Toggle music and sound effects" aria-pressed="true"><span aria-hidden="true">♪</span><b>Sound on</b></button>
+        <button class="secondary compact" type="button" data-action="advance" data-months="1">+1 month</button>
+        <button class="primary compact" type="button" data-action="advance" data-months="3">Next quarter</button>
+      </div>
+    </header>
+
+    <div class="market-tape" id="market-tape" aria-label="Market prices"></div>
+
+    <main>
+      <nav class="section-tabs" aria-label="Game sections">
+        <button class="active" type="button" data-tab-target="overview"><span aria-hidden="true">▦</span>Overview</button>
+        <button type="button" data-tab-target="markets"><span aria-hidden="true">↗</span>Markets</button>
+        <button type="button" data-tab-target="businesses"><span aria-hidden="true">⚙</span>Ventures</button>
+        <button type="button" data-tab-target="property"><span aria-hidden="true">⌂</span>Property</button>
+        <button type="button" data-tab-target="credit"><span aria-hidden="true">%</span>Credit</button>
+        <button type="button" data-tab-target="ledger"><span aria-hidden="true">≡</span>Ledger</button>
+      </nav>
+      <div class="mission-strip" id="mission-strip">
+        <span class="mission-label">Current objective</span>
+        <strong id="mission-title">Protect six months of cash</strong>
+        <span id="mission-detail">Preserve a margin of safety before taking concentrated risk.</span>
+        <button class="text-button" id="mission-action" type="button" data-action="objective">Review</button>
+      </div>
+
+      <section class="game-section active" id="section-overview" aria-labelledby="overview-title">
+        <div class="summary-strip" id="summary-strip"></div>
+        <div class="overview-grid">
+          <div class="world-column">
+            <div class="section-heading world-heading">
+              <div><span class="eyebrow">Your economic map</span><h1 id="overview-title">Build through the cycle</h1></div>
+              <span class="status-chip" id="cycle-label">Expansion</span>
+            </div>
+            <div class="city-map" aria-label="Illustrated economic city">
+              <img src="public/economy-city.webp" alt="An American city with businesses, farms, power, data centers, and a space launch site">
+              <button class="map-pin pin-markets" type="button" data-tab-target="markets"><span>Market district</span></button>
+              <button class="map-pin pin-business" type="button" data-tab-target="businesses"><span>Enterprise row</span></button>
+              <button class="map-pin pin-property" type="button" data-tab-target="property"><span>Property market</span></button>
+              <button class="map-pin pin-future" type="button" data-tab-target="businesses"><span>Frontier industry</span></button>
+            </div>
+            <section class="deal-board" aria-labelledby="deal-board-title">
+              <div class="tool-heading"><div><span class="eyebrow">Rotates every quarter</span><h2 id="deal-board-title">Deal Board</h2></div><span class="deal-capacity" id="deal-capacity">0/5 active</span></div>
+              <div class="deal-grid" id="deal-grid"></div>
+            </section>
+            <div class="dashboard-band">
+              <section class="chart-tool" aria-labelledby="wealth-chart-title">
+                <div class="tool-heading"><div><span class="eyebrow">Balance sheet</span><h2 id="wealth-chart-title">Net worth trajectory</h2></div><strong id="chart-net-worth">$0</strong></div>
+                <canvas id="wealth-chart" height="190" aria-label="Net worth chart"></canvas>
+              </section>
+              <section class="allocation-tool" aria-labelledby="allocation-title">
+                <div class="tool-heading"><div><span class="eyebrow">Exposure</span><h2 id="allocation-title">Capital allocation</h2></div></div>
+                <div id="allocation-bars"></div>
+              </section>
+            </div>
+          </div>
+
+          <aside class="intel-column">
+            <section class="intel-panel guide-panel" aria-labelledby="objectives-title">
+              <div class="tool-heading"><div><span class="eyebrow">Your plan</span><h2 id="objectives-title">Next moves</h2></div><strong id="objective-count">0/0</strong></div>
+              <div class="objective-list" id="objective-list"></div>
+            </section>
+            <section class="intel-panel project-panel" id="project-panel" aria-labelledby="projects-title" hidden>
+              <div class="tool-heading"><div><span class="eyebrow">Capital at risk</span><h2 id="projects-title">Active projects</h2></div><strong id="project-count">0</strong></div>
+              <div id="project-list"></div>
+            </section>
+            <section class="intel-panel" aria-labelledby="signals-title">
+              <div class="tool-heading"><div><span class="eyebrow">Economic calculation</span><h2 id="signals-title">Signal desk</h2></div></div>
+              <div class="macro-grid" id="macro-grid"></div>
+              <div class="signal-list" id="signal-list"></div>
+            </section>
+            <section class="intel-panel" aria-labelledby="dispatch-title">
+              <div class="tool-heading"><div><span class="eyebrow">Advisor</span><h2 id="dispatch-title">Latest dispatch</h2></div><button class="text-button" type="button" data-tab-target="ledger">History</button></div>
+              <div id="advisor-dispatch"></div>
+            </section>
+            <section class="intel-panel compact-panel" aria-labelledby="milestone-title">
+              <div class="tool-heading"><div><span class="eyebrow">Progress</span><h2 id="milestone-title">Next milestone</h2></div></div>
+              <div id="next-milestone"></div>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <section class="game-section" id="section-markets" aria-labelledby="markets-title">
+        <div class="section-heading page-heading">
+          <div><span class="eyebrow">Public markets</span><h1 id="markets-title">Exchange floor</h1><p>Own productive assets, lend at a price, or accept scarcity risk.</p></div>
+          <div class="heading-stat"><small>Portfolio value</small><strong id="market-portfolio-value">$0</strong></div>
+        </div>
+        <div class="market-layout">
+          <div><div class="asset-table" id="asset-table"></div></div>
+          <aside class="positions-panel">
+            <div class="tool-heading"><div><span class="eyebrow">Positions</span><h2>Your holdings</h2></div></div>
+            <div id="holdings-list"></div>
+          </aside>
+        </div>
+        <section class="derivatives-band" aria-labelledby="derivatives-title">
+          <div class="section-heading subheading"><div><span class="eyebrow">Risk transfer</span><h2 id="derivatives-title">Options & futures desk</h2><p>Defined premium for options; monthly mark-to-market and 8× notional for futures.</p></div></div>
+          <div class="derivative-grid" id="derivative-desk"></div>
+          <div class="open-positions" id="derivative-positions"></div>
+        </section>
+      </section>
+
+      <section class="game-section" id="section-businesses" aria-labelledby="businesses-title">
+        <div class="section-heading page-heading">
+          <div><span class="eyebrow">Private enterprise</span><h1 id="businesses-title">Venture yard</h1><p>Turn resources into customer value. Profit is the test, not the pitch.</p></div>
+          <div class="heading-stat"><small>Enterprise value</small><strong id="business-value">$0</strong></div>
+        </div>
+        <div id="owned-businesses" class="owned-band"></div>
+        <div class="catalog-grid" id="business-catalog"></div>
+      </section>
+
+      <section class="game-section" id="section-property" aria-labelledby="property-title">
+        <div class="section-heading page-heading">
+          <div><span class="eyebrow">Real assets</span><h1 id="property-title">Property desk</h1><p>Finance long-lived assets against rents, vacancies, repairs, and refinancing conditions.</p></div>
+          <div class="heading-stat"><small>Property equity</small><strong id="property-equity">$0</strong></div>
+        </div>
+        <div id="owned-properties" class="owned-band"></div>
+        <div class="catalog-grid property-grid" id="property-catalog"></div>
+      </section>
+
+      <section class="game-section" id="section-credit" aria-labelledby="credit-title">
+        <div class="section-heading page-heading">
+          <div><span class="eyebrow">Capital structure</span><h1 id="credit-title">Credit office</h1><p>Debt changes timing, not economics. Maintain collateral and preserve control.</p></div>
+          <div class="heading-stat"><small>Total liabilities</small><strong id="total-liabilities">$0</strong></div>
+        </div>
+        <div class="credit-grid">
+          <section class="credit-tool" aria-labelledby="margin-title">
+            <div class="tool-heading"><div><span class="eyebrow">Brokerage credit</span><h2 id="margin-title">Margin facility</h2></div><strong id="margin-rate">0%</strong></div>
+            <div id="margin-console"></div>
+          </section>
+          <section class="credit-tool" aria-labelledby="term-title">
+            <div class="tool-heading"><div><span class="eyebrow">Five-year amortization</span><h2 id="term-title">Business loans</h2></div></div>
+            <div id="loan-console"></div>
+          </section>
+          <section class="credit-tool danger-tool" aria-labelledby="failure-title">
+            <div class="tool-heading"><div><span class="eyebrow">Last resort</span><h2 id="failure-title">Insolvency & bankruptcy</h2></div></div>
+            <div id="bankruptcy-console"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="game-section" id="section-ledger" aria-labelledby="ledger-title">
+        <div class="section-heading page-heading">
+          <div><span class="eyebrow">Records and training</span><h1 id="ledger-title">Capital ledger</h1><p>Review taxes, decisions, outcomes, and the ideas behind the signals.</p></div>
+          <button class="secondary" type="button" data-action="export-save">Export save</button>
+        </div>
+        <div class="ledger-tabs" role="tablist" aria-label="Ledger views">
+          <button class="active" type="button" data-ledger-target="taxes">Tax desk</button>
+          <button type="button" data-ledger-target="journal">Journal</button>
+          <button type="button" data-ledger-target="academy">Principles</button>
+          <button type="button" data-ledger-target="awards">Milestones</button>
+        </div>
+        <div id="ledger-content"></div>
+      </section>
+    </main>
+
+    <nav class="mobile-nav" aria-label="Mobile game sections">
+      <button class="active" type="button" data-tab-target="overview"><span>▦</span>Home</button>
+      <button type="button" data-tab-target="markets"><span>↗</span>Markets</button>
+      <button type="button" data-tab-target="businesses"><span>⚙</span>Build</button>
+      <button type="button" data-tab-target="property"><span>⌂</span>Property</button>
+      <button type="button" data-tab-target="credit"><span>%</span>Credit</button>
+      <button type="button" data-tab-target="ledger"><span>≡</span>Ledger</button>
+    </nav>
+  </div>
+
+  <div class="modal-backdrop" id="start-modal" role="dialog" aria-modal="true" aria-labelledby="start-title">
+    <div class="start-modal-panel">
+      <div class="start-art" aria-hidden="true"></div>
+      <div class="start-copy">
+        <span class="eyebrow">A twenty-year American capital simulation</span>
+        <h1 id="start-title">Capital Frontier</h1>
+        <p class="start-lede">Build wealth by reading real signals, serving customers, and surviving what forecasts miss.</p>
+        <div class="scenario-list" id="scenario-list"></div>
+        <div class="start-actions">
+          <button class="primary large" id="start-game" type="button">Begin in July 2026</button>
+          <button class="text-button" id="continue-game" type="button" hidden>Continue saved game</button>
+        </div>
+        <small class="disclaimer">Educational simulation. U.S. federal tax rules and market mechanics are simplified; this is not investment, legal, or tax advice.</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="event-modal" role="dialog" aria-modal="true" aria-labelledby="event-title" hidden>
+    <div class="event-panel">
+      <span class="eyebrow" id="event-kicker">Cycle event</span>
+      <h2 id="event-title"></h2>
+      <p class="event-context" id="event-context"></p>
+      <p id="event-body"></p>
+      <section class="event-effects" aria-labelledby="event-effects-title">
+        <h3 id="event-effects-title">What changed</h3>
+        <div class="effect-list" id="event-effects-list"></div>
+      </section>
+      <section class="personal-impact" aria-labelledby="personal-impact-title">
+        <h3 id="personal-impact-title">Impact on your finances</h3>
+        <div id="event-financial-impact"></div>
+      </section>
+      <div class="lesson-callout"><strong>Investor's note</strong><span id="event-lesson"></span></div>
+      <section class="event-decisions" aria-labelledby="event-decisions-title">
+        <h3 id="event-decisions-title">Choose your response</h3>
+        <div class="event-choice-list" id="event-choice-list"></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="onboarding-modal" role="dialog" aria-modal="true" aria-labelledby="onboarding-title" hidden>
+    <div class="event-panel onboarding-panel">
+      <span class="eyebrow">Your first ninety days</span>
+      <h2 id="onboarding-title">Start with a margin of safety</h2>
+      <p>Every month pays salary, living costs, taxes, debt, and operating cash flow. Your job is to allocate what remains without losing control of the balance sheet.</p>
+      <ol class="onboarding-steps">
+        <li><span>1</span><div><strong>Protect six months of expenses</strong><small id="onboarding-reserve">Keep a cash reserve.</small></div></li>
+        <li><span>2</span><div><strong>Invest a measured first $5,000</strong><small>Broad stocks and Treasury bills are forgiving places to learn the order system.</small></div></li>
+        <li><span>3</span><div><strong>Advance one month and review</strong><small>Compare cash movement, market prices, and the Signal Desk before committing more.</small></div></li>
+      </ol>
+      <div class="onboarding-actions"><button class="primary" type="button" data-action="begin-plan">Open the market desk</button><button class="text-button" type="button" data-action="close-onboarding">Stay on overview</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="trade-modal" role="dialog" aria-modal="true" aria-labelledby="trade-title" hidden>
+    <div class="trade-panel">
+      <button class="modal-close" type="button" data-action="close-trade" aria-label="Close trade dialog">×</button>
+      <span class="eyebrow">Order ticket</span>
+      <h2 id="trade-title">Asset order</h2>
+      <p id="trade-description"></p>
+      <div class="order-quote"><span id="trade-symbol"></span><strong id="trade-price"></strong></div>
+      <div class="segmented" id="trade-side">
+        <button class="active" type="button" data-trade-side="buy">Buy</button>
+        <button type="button" data-trade-side="sell">Sell</button>
+      </div>
+      <label class="field-label" for="trade-amount">Dollar amount</label>
+      <div class="money-input"><span>$</span><input id="trade-amount" inputmode="decimal" type="number" min="25" step="100" value="1000"></div>
+      <div class="quick-amounts">
+        <button type="button" data-quick-amount="1000">$1K</button>
+        <button type="button" data-quick-amount="5000">$5K</button>
+        <button type="button" data-quick-amount="25000">$25K</button>
+        <button type="button" data-quick-amount="max">Max</button>
+      </div>
+      <button class="primary full" type="button" data-action="submit-trade">Preview & place order</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="end-modal" role="dialog" aria-modal="true" aria-labelledby="end-title" hidden>
+    <div class="event-panel end-panel">
+      <span class="eyebrow">April 2046 review</span>
+      <h2 id="end-title">Your twenty-year record</h2>
+      <div id="end-summary"></div>
+      <button class="primary" type="button" data-action="new-game">Try another path</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="outcome-modal" role="dialog" aria-modal="true" aria-labelledby="outcome-title" hidden>
+    <div class="event-panel outcome-panel">
+      <span class="eyebrow" id="outcome-kicker">Project resolved</span>
+      <h2 id="outcome-title">Opportunity result</h2>
+      <p id="outcome-body"></p>
+      <div class="outcome-number"><small>Net result</small><strong id="outcome-profit">$0</strong><span id="outcome-payout"></span></div>
+      <div class="lesson-callout"><strong>Capital allocator's note</strong><span id="outcome-lesson"></span></div>
+      <button class="primary" type="button" data-action="dismiss-outcome">Continue</button>
+    </div>
+  </div>
+
+  <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="data.js"></script>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

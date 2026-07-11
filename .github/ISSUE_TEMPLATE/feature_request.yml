@@ -1,0 +1,27 @@
+name: Feature request
+description: Propose a gameplay, simulation, or accessibility improvement.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: player-problem
+    attributes:
+      label: Player problem
+      description: What is missing, unclear, repetitive, or insufficiently fun?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+  - type: textarea
+    id: economics
+    attributes:
+      label: Economic or balance implications
+      description: Explain effects on risk, cash flow, incentives, taxes, or progression.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
