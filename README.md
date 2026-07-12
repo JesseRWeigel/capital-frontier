@@ -61,3 +61,7 @@ Taxes, bankruptcy, entities, financial products, and state rules are intentional
 - [Federal Reserve June 17, 2026 FOMC statement](https://www.federalreserve.gov/newsevents/pressreleases/monetary20260617a.htm)
 - [SEC margin account guide](https://www.sec.gov/about/reports-publications/investorpubsmarginhtm)
 - [CBO long-term budget and economic outlook](https://www.cbo.gov/publication/61270)
+
+## License
+
+Capital Frontier is available under the [MIT License](LICENSE).
