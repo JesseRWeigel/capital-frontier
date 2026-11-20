@@ -169,3 +169,23 @@ test("quarterly deal board enforces commitment limits and produces an outcome", 
   assert.ok(state.pendingOutcome);
   assert.equal(state.pendingOutcome.stake, deal.cost);
 });
+
+test("cash-limited prepayment preserves a sub-dollar loan balance until paid", () => {
+  const state = E.createGame("bootstrap", 89);
+  assert.equal(E.takeLoan(state, 5000).ok, true);
+  const loanId = state.loans[0].id;
+  state.cash = 4999.50;
+  const netWorthBefore = E.netWorth(state);
+
+  assert.equal(E.repayLoan(state, loanId, 5000).ok, true);
+  assert.equal(state.cash, 0);
+  assert.equal(state.loans[0]?.id, loanId);
+  assert.equal(E.loanBalance(state), 0.5);
+  assert.equal(E.netWorth(state), netWorthBefore);
+
+  state.cash = 10;
+  assert.equal(E.repayLoan(state, loanId, 5000).ok, true);
+  assert.equal(state.cash, 9.5);
+  assert.equal(E.loanBalance(state), 0);
+  assert.equal(state.loans.length, 0);
+});
