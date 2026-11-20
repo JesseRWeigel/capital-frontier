@@ -445,7 +445,7 @@
     if (!Number.isFinite(amount) || amount <= 0) return { ok: false, message: "No cash available for that payment." };
     loan.principal -= amount;
     state.cash -= amount;
-    if (loan.principal < 1) state.loans = state.loans.filter((item) => item.id !== loanId);
+    if (loan.principal === 0) state.loans = state.loans.filter((item) => item.id !== loanId);
     log(state, "credit", "Principal prepaid", loan.type, -amount);
     return { ok: true, message: `Repaid $${Math.round(amount).toLocaleString()}.` };
   }
