@@ -637,10 +637,12 @@
       const rent = owned.occupied ? spec.rent * Math.pow(1 + state.metrics.inflation / 100, elapsedSince(owned.boughtAt, state) / 12) : 0;
       const expenses = spec.rent * spec.expenses;
       const interest = owned.mortgage * owned.rate / 12;
-      const principal = Math.max(0, Math.min(owned.mortgage, owned.payment - interest));
-      owned.mortgage -= principal;
-      owned.monthsRemaining -= 1;
-      const cashFlow = rent - expenses - owned.payment;
+      // Cap the installment at the payoff amount; paid-off properties have no debt service.
+      const payoff = owned.mortgage + interest;
+      const payment = Math.min(payoff, owned.payment);
+      owned.mortgage = payment === payoff ? 0 : owned.mortgage - Math.max(0, payment - interest);
+      owned.monthsRemaining = owned.mortgage === 0 ? 0 : Math.max(0, owned.monthsRemaining - 1);
+      const cashFlow = rent - expenses - payment;
       owned.lastCashFlow = cashFlow;
       state.cash += cashFlow;
       ledger.business += rent - expenses - interest;
