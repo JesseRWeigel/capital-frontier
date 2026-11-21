@@ -755,6 +755,8 @@
   }
 
   function processDerivatives(state) {
+    // Prices already reflect this advance; the month counter updates afterward.
+    const settlementMonth = state.monthsElapsed + 1;
     const survivors = [];
     state.derivatives.forEach((derivative) => {
       if (derivative.type === "future") {
@@ -776,7 +778,7 @@
           }
         }
       }
-      if (state.monthsElapsed >= derivative.expiry) settleDerivative(state, derivative, false);
+      if (settlementMonth >= derivative.expiry) settleDerivative(state, derivative, false);
       else survivors.push(derivative);
     });
     state.derivatives = survivors;

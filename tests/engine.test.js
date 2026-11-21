@@ -189,3 +189,36 @@ test("cash-limited prepayment preserves a sub-dollar loan balance until paid", (
   assert.equal(E.loanBalance(state), 0);
   assert.equal(state.loans.length, 0);
 });
+
+test("six-month options and futures settle on the sixth advance after opening", () => {
+  const state = E.createGame("bootstrap", 1);
+  E.advanceMonth(state); // Asset opened after the start of the campaign.
+  assert.equal(E.openOption(state, "vti", "call", 1000).ok, true);
+  assert.equal(E.openFuture(state, "energy", "long", 1000).ok, true);
+  const [option, future] = state.derivatives;
+
+  for (let month = 1; month <= 5; month += 1) {
+    assert.equal(E.advanceMonth(state).ok, true);
+    assert.deepEqual(state.derivatives.map((position) => position.id), [option.id, future.id]);
+  }
+  const priorMargin = future.marginBalance;
+  const priorPrice = future.lastPrice;
+
+  assert.equal(E.advanceMonth(state).ok, true);
+  assert.equal(state.monthsElapsed, option.expiry);
+  assert.equal(state.monthsElapsed, future.expiry);
+  assert.deepEqual(state.derivatives, []);
+
+  const expiration = state.log.find((entry) => entry.title === "VTI option expired");
+  const settlement = state.log.find((entry) => entry.title === "NRG future closed");
+  assert.ok(expiration);
+  assert.ok(settlement);
+  const expectedOption = option.contracts * 100 * Math.max(0, state.prices.vti - option.strike);
+  const expectedFuture = priorMargin + future.notional * (state.prices.energy / priorPrice - 1);
+  assert.ok(Math.abs(expectedOption - expiration.amount) < 0.01);
+  assert.ok(Math.abs(expectedFuture - settlement.amount) < 0.01);
+
+  assert.equal(E.advanceMonth(state).ok, true);
+  assert.equal(state.log.filter((entry) => entry.title === expiration.title).length, 1);
+  assert.equal(state.log.filter((entry) => entry.title === settlement.title).length, 1);
+});
