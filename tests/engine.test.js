@@ -222,3 +222,40 @@ test("six-month options and futures settle on the sixth advance after opening", 
   assert.equal(state.log.filter((entry) => entry.title === expiration.title).length, 1);
   assert.equal(state.log.filter((entry) => entry.title === settlement.title).length, 1);
 });
+
+test("property operating cash flow stops charging a paid-off mortgage after reload", () => {
+  const state = E.createGame("bootstrap", 101);
+  state.cash = 1000000;
+  assert.equal(E.buyProperty(state, "retail").ok, true);
+  const property = state.properties[0];
+  property.mortgage = 0;
+  property.monthsRemaining = 0;
+
+  const resumed = E.hydrate(E.serialize(state));
+  const owned = resumed.properties[0];
+  const spec = E.getProperty(owned.type);
+  E.advanceMonth(resumed);
+  assert.equal(owned.mortgage, 0);
+  assert.equal(owned.monthsRemaining, 0);
+  assert.equal(owned.lastCashFlow, (owned.occupied ? spec.rent : 0) - spec.rent * spec.expenses);
+  assert.equal(resumed.stats.rentProfit, owned.lastCashFlow);
+});
+
+test("a final mortgage installment charges only remaining principal and interest", () => {
+  const state = E.createGame("bootstrap", 102);
+  state.cash = 1000000;
+  assert.equal(E.buyProperty(state, "retail").ok, true);
+  const owned = state.properties[0];
+  const spec = E.getProperty(owned.type);
+  owned.mortgage = 100;
+  owned.monthsRemaining = 1;
+  const interest = owned.mortgage * owned.rate / 12;
+  E.advanceMonth(state);
+
+  assert.equal(owned.mortgage, 0);
+  assert.equal(owned.monthsRemaining, 0);
+  const operatingIncome = (owned.occupied ? spec.rent : 0) - spec.rent * spec.expenses;
+  assert.equal(owned.lastCashFlow, operatingIncome - (100 + interest));
+  assert.equal(state.stats.interest, interest);
+  assert.equal(state.taxes[2026].business, operatingIncome - interest);
+});
