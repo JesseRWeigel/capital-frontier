@@ -516,7 +516,7 @@
     state.cash -= margin;
     state.derivatives.push({
       id: uid(state, "future"), type: "future", assetId, direction, initialMargin: margin,
-      marginBalance: margin, notional: margin * 8, entry: state.prices[assetId], lastPrice: state.prices[assetId],
+      marginBalance: margin, marginTopUps: 0, notional: margin * 8, entry: state.prices[assetId], lastPrice: state.prices[assetId],
       opened: state.monthsElapsed, expiry: state.monthsElapsed + 6
     });
     log(state, "derivative", `${asset.symbol} future opened`, `8x notional exposure; losses settle monthly.`, -margin);
@@ -541,6 +541,12 @@
     return option.contracts * 100 * (intrinsic + timeValue);
   }
 
+  function futureGain(future) {
+    // Maintenance deposits are additional player capital, not trading gains.
+    // Older saves did not record past top-ups.
+    return future.marginBalance - future.initialMargin - (future.marginTopUps ?? 0);
+  }
+
   function settleDerivative(state, derivative, voluntary) {
     const asset = getAsset(derivative.assetId);
     if (derivative.type === "option") {
@@ -551,7 +557,7 @@
       return proceeds;
     }
     state.cash += Math.max(0, derivative.marginBalance);
-    const gain = derivative.marginBalance - derivative.initialMargin;
+    const gain = futureGain(derivative);
     recordGain(state, gain, elapsedSince(derivative.opened, state));
     log(state, "derivative", `${asset.symbol} future closed`, `${gain >= 0 ? "Net gain" : "Net loss"} $${Math.abs(Math.round(gain)).toLocaleString()}`, Math.max(0, derivative.marginBalance));
     return Math.max(0, derivative.marginBalance);
@@ -772,9 +778,10 @@
           const topUp = Math.min(available, derivative.initialMargin - derivative.marginBalance);
           state.cash -= topUp;
           derivative.marginBalance += topUp;
+          derivative.marginTopUps = (derivative.marginTopUps ?? 0) + topUp;
           if (derivative.marginBalance < derivative.initialMargin * 0.45) {
             state.cash += Math.max(0, derivative.marginBalance);
-            recordGain(state, derivative.marginBalance - derivative.initialMargin, elapsedSince(derivative.opened, state));
+            recordGain(state, futureGain(derivative), elapsedSince(derivative.opened, state));
             log(state, "warning", "Futures position liquidated", "Maintenance margin could not be restored.", Math.max(0, derivative.marginBalance));
             return;
           }
