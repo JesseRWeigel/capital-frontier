@@ -259,3 +259,67 @@ test("a final mortgage installment charges only remaining principal and interest
   assert.equal(state.stats.interest, interest);
   assert.equal(state.taxes[2026].business, operatingIncome - interest);
 });
+
+test("closing a future after a saved maintenance top-up records the trading loss", () => {
+  const state = E.createGame("bootstrap", 1);
+  assert.equal(E.openFuture(state, "energy", "long", 1000).ok, true);
+  const future = state.derivatives[0];
+  const startPrice = future.lastPrice;
+
+  E.advanceMonth(state);
+  const expectedGain = future.notional * (future.lastPrice / startPrice - 1);
+  assert.ok(expectedGain < -550);
+  assert.equal(future.marginBalance, 1000); // Maintenance restored the account.
+
+  const resumed = E.hydrate(E.serialize(state));
+  assert.equal(E.closeDerivative(resumed, future.id).ok, true);
+  assert.ok(Math.abs(resumed.stats.realizedGains - expectedGain) < 0.01);
+  assert.ok(Math.abs(resumed.taxes[2026].shortGains - expectedGain) < 0.01);
+});
+
+test("future expiry accounts for multiple top-ups, including from a legacy save", () => {
+  let state = E.createGame("bootstrap", 2);
+  assert.equal(E.openFuture(state, "energy", "long", 1000).ok, true);
+  delete state.derivatives[0].marginTopUps; // Older saves have no recorded top-ups.
+  state = E.hydrate(E.serialize(state));
+  const future = state.derivatives[0];
+
+  let expectedGain = 0;
+  let topUps = 0;
+  for (let month = 0; month < 6; month += 1) {
+    const priorBalance = future.marginBalance;
+    const priorPrice = future.lastPrice;
+    E.advanceMonth(state);
+    const pnl = future.notional * (future.lastPrice / priorPrice - 1);
+    expectedGain += pnl;
+    if (future.marginBalance - priorBalance - pnl > 0.01) topUps += 1;
+  }
+  assert.ok(topUps > 1);
+  assert.deepEqual(state.derivatives, []);
+  assert.ok(Math.abs(state.stats.realizedGains - expectedGain) < 0.01);
+  assert.ok(Math.abs(state.taxes[2026].shortGains - expectedGain) < 0.01);
+});
+
+test("future liquidation counts both earlier top-ups and the last partial deposit", () => {
+  const state = E.createGame("bootstrap", 2);
+  assert.equal(E.openFuture(state, "energy", "long", 1000).ok, true);
+  const future = state.derivatives[0];
+
+  let expectedGain = 0;
+  for (let month = 0; month < 3; month += 1) {
+    const priorPrice = future.lastPrice;
+    if (month === 2) {
+      state.cash = 50;
+      state.salary = 0;
+      state.livingExpenses = 0;
+    }
+    E.advanceMonth(state);
+    expectedGain += future.notional * (future.lastPrice / priorPrice - 1);
+    if (month === 1) assert.equal(future.marginBalance, 1000);
+  }
+  assert.deepEqual(state.derivatives, []);
+  assert.ok(future.marginBalance > 50 && future.marginBalance < 450);
+  assert.ok(state.log.some((entry) => entry.title === "Futures position liquidated"));
+  assert.ok(Math.abs(state.stats.realizedGains - expectedGain) < 0.01);
+  assert.ok(Math.abs(state.taxes[2026].shortGains - expectedGain) < 0.01);
+});
