@@ -13,6 +13,8 @@
   const START_YEAR = 2026;
   const START_MONTH = 6;
   const GAME_MONTHS = 240;
+  const MAX_ACTIVE_PROJECTS = 5;
+  const PROJECT_CAPACITY_MESSAGE = "Your team can manage at most five active projects.";
   const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const SINGLE_BRACKETS_2026 = [
     [12400, 0.10], [50400, 0.12], [105700, 0.22], [201775, 0.24],
@@ -946,6 +948,9 @@
     if (!event) return { ok: false, message: "There is no event decision waiting." };
     const choice = (event.choices || []).find((candidate) => candidate.id === choiceId);
     if (!choice) return { ok: false, message: "That response is not available." };
+    if (choice.kind === "pilot" && state.opportunities.length >= MAX_ACTIVE_PROJECTS) {
+      return { ok: false, message: PROJECT_CAPACITY_MESSAGE };
+    }
     if (choice.cost > state.cash) return { ok: false, message: `You need ${Math.round(choice.cost).toLocaleString()} in available cash for that response.` };
     state.cash -= choice.cost;
     if (choice.kind === "pilot") {
@@ -1002,7 +1007,7 @@
     const deal = availableDeals(state).find((candidate) => candidate.key === dealKey);
     if (!deal) return { ok: false, message: "That deal is no longer on the current-quarter board." };
     if (deal.taken) return { ok: false, message: "You already committed to that deal this quarter." };
-    if (state.opportunities.length >= 5) return { ok: false, message: "Your team can manage at most five active projects." };
+    if (state.opportunities.length >= MAX_ACTIVE_PROJECTS) return { ok: false, message: PROJECT_CAPACITY_MESSAGE };
     if (state.cash < deal.cost) return { ok: false, message: `You need ${Math.round(deal.cost).toLocaleString()} in available cash for this deal.` };
     state.cash -= deal.cost;
     state.takenDeals.push(deal.key);
