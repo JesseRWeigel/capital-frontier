@@ -360,3 +360,26 @@ for (const [dealId, months, category, otherCategory] of [
     assert.equal(state.stats.realizedGains, profit);
   });
 }
+
+test("a scheduled event pilot shares the Deal Board's five-project cap", () => {
+  const state = E.createGame("technologist", 81);
+  state.cash = 2000000;
+  for (let month = 0; month < 9; month += 1) {
+    for (const deal of E.availableDeals(state)) E.takeDeal(state, deal.key);
+    E.advanceMonth(state);
+  }
+  assert.equal(state.pendingEvent.id, "agents");
+  const pilot = state.pendingEvent.choices.find((choice) => choice.kind === "pilot");
+  assert.ok(state.cash > pilot.cost);
+  assert.equal(state.opportunities.length, 5);
+  const before = E.serialize(state);
+
+  const result = E.resolveEventChoice(state, pilot.id);
+
+  assert.equal(result.ok, false);
+  assert.match(result.message, /at most five active projects/);
+  assert.equal(E.serialize(state), before);
+  assert.equal(E.resolveEventChoice(state, "hold").ok, true);
+  assert.equal(state.pendingEvent, null);
+  assert.equal(state.opportunities.length, 5);
+});
