@@ -805,7 +805,8 @@
       const payout = success ? project.stake * project.payoutMultiple : project.stake * project.recoveryRate;
       const profit = payout - project.stake;
       state.cash += payout;
-      recordGain(state, profit, elapsedSince(project.startedAt, state));
+      // The project just completed this advance, before the campaign counter increments.
+      recordGain(state, profit, elapsedSince(project.startedAt, state) + 1);
       state.knowledge = clamp(state.knowledge + (success ? 1 : 3), 0, 100);
       state.reputation = clamp(state.reputation + (success ? 3 : -1), 0, 100);
       state.pendingOutcome = {

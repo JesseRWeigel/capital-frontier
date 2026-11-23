@@ -323,3 +323,40 @@ test("future liquidation counts both earlier top-ups and the last partial deposi
   assert.ok(Math.abs(state.stats.realizedGains - expectedGain) < 0.01);
   assert.ok(Math.abs(state.taxes[2026].shortGains - expectedGain) < 0.01);
 });
+
+for (const [dealId, months, category, otherCategory] of [
+  ["satellite-data", 11, "shortGains", "longGains"],
+  ["orbital-manifest", 12, "longGains", "shortGains"]
+]) {
+  test(`Deal Board classifies a ${months}-month project at maturity`, () => {
+    const state = E.createGame("bootstrap", 102);
+    let deal;
+    for (let index = 0; index < E.GAME_MONTHS; index += 1) {
+      deal = E.availableDeals(state).find((candidate) => candidate.id === dealId);
+      if (deal) break;
+      E.advanceMonth(state);
+    }
+    assert.ok(deal, `Expected ${dealId} on the Deal Board`);
+    assert.equal(deal.months, months);
+
+    state.cash = 1000000;
+    assert.equal(E.takeDeal(state, deal.key).ok, true);
+    const [project] = state.opportunities;
+    for (let index = 1; index < months; index += 1) E.advanceMonth(state);
+    assert.equal(state.opportunities[0]?.monthsRemaining, 1);
+    assert.equal(state.stats.realizedGains, 0);
+
+    const settlementYear = state.year;
+    E.advanceMonth(state);
+    assert.equal(state.opportunities.length, 0);
+    assert.equal(state.monthsElapsed - project.startedAt, months);
+    assert.equal(state.pendingOutcome?.id, project.id);
+    const profit = state.pendingOutcome.profit;
+    assert.notEqual(profit, 0);
+    assert.equal(state.taxes[settlementYear][category], profit);
+    assert.equal(state.taxes[settlementYear][otherCategory], 0);
+
+    E.advanceMonth(state);
+    assert.equal(state.stats.realizedGains, profit);
+  });
+}
